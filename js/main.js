@@ -21,6 +21,7 @@ var gGame = {
 
 // This is called when page loads
 function initGame() {
+    gGame.isOn = true;
     gBoard = buildBoard(gLevel.SIZE);
     setMinesNegsCount(gBoard);
     showNeighbours(gBoard);
@@ -93,7 +94,7 @@ function renderBoard(board, selector) {
         strHTML += `<tr>`;
         for (var j = 0; j < board[0].length; j++) {
             var cell = board[i][j];
-            if (cell.isMine && gGame.isOn && !cell.isVisible){
+            if (cell.isMine && !gGame.isOn && !cell.isVisible){
                 inputCell = MINE;
                 cellStyle = 'unVisible';
                 console.log("SHOW")
@@ -130,6 +131,7 @@ function renderBoard(board, selector) {
 
 // Called when a cell (td) is clicked
 function cellClicked(elCell){
+    if (gGame.isOn === false) return;
     var cellPos = getCellPos(elCell.id);
     console.log('cellPos:',cellPos);
     var cell = gBoard[cellPos.i][cellPos.j];
@@ -151,8 +153,9 @@ function cellMarked(elCell) { }
 
 // Game ends when all mines are marked, and all the other cells are shown
 function checkGameOver() {
-    gGame.isOn = true;
+    gGame.isOn = false;
     renderAllMines(gBoard);
+
     // renderBoard(gBoard, '.game-board')
 }
 
