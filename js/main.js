@@ -152,7 +152,8 @@ function cellMarked(elCell) { }
 // Game ends when all mines are marked, and all the other cells are shown
 function checkGameOver() {
     gGame.isOn = true;
-    renderBoard(gBoard, '.game-board')
+    renderAllMines(gBoard);
+    // renderBoard(gBoard, '.game-board')
 }
 
 
@@ -169,49 +170,15 @@ function getCellPos(strCellId) {
 function renderMineCells(){
 
 }
-
-
-
-
-// function renderBoard(board, selector) {
-//     var inputCell = '';
-//     var cellStyle = '';
-//     var strHTML = `<table border="0"><tbody>`;
-//     for (var i = 0; i < board.length; i++) {
-//         strHTML += `<tr>`;
-//         for (var j = 0; j < board[0].length; j++) {
-//             var cell = board[i][j];
-//             if (!cell.isVisible){
-//                 inputCell = ' '
-//                 cellStyle = 'unVisible';   
-//             }else{
-//                 if (cell.isMine && gGame.isOn && !cell.isVisible){
-//                     inputCell = MINE;
-//                     cellStyle = 'unVisible';
-//                     console.log("SHOW")
-//                 }
-//                 if (cell.isMine){
-//                     inputCell = MINE;
-//                     cellStyle = 'onMine';
-//                     // cellStyle = 'visible';
-//                 } 
-//             else if (cell.neighbours) {
-//                 inputCell = cell.neighbours;
-//                 cellStyle = 'visible';
-//                 }
-//                 else {
-//                 inputCell = ' ';
-//                 cellStyle = 'visible';
-//                 }
-//             }
-//             var className = `cell-${i}-${j}`;
-//             strHTML += `<td id="${className}" class="cell ${cellStyle}" onclick="cellClicked(this)">${inputCell}</td>`;
-//         }
-//         strHTML += `</tr>`
-//     }
-//     strHTML += `</tbody></table>`;
-//     var elGameBord = document.querySelector(selector);
-//     // console.log('elGameBord:', elGameBord);
-//     elGameBord.innerHTML = strHTML;
-//     // console.log('strHtml:', strHTML);
-// }
+function renderCell(i, j, value) {
+    var elCell = document.querySelector(`#cell-${i}-${j}`)
+    elCell.innerText = value;
+}
+function renderAllMines(board){
+    for (var i=0;i<board.length;i++){
+        for (var j=0;j<board.length;j++){
+            var cell = board[i][j];
+            if (cell.isMine) renderCell(i, j, MINE);
+        }
+    }
+}
