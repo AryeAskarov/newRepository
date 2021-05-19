@@ -58,11 +58,13 @@ function buildBoard(size = 4) {
 
 // Count mines around each cell and set the cell's minesAroundCount.
 function setMinesNegsCount(board) {
-    var cell = board[1][2];
-    cell.isMine = true;
-    cell = board[2][1];
-    cell.isMine = true;
+    for(var i=0;i<gLevel.MINES;i++){
+        var cell = board[getRandInc(0, board.length-1) ][getRandInc(0, board.length-1) ]; 
+        if (!cell.isMine)cell.isMine = true; 
+        else i--;
+    }
 }
+
 function countMineNeighbours(cellI, cellJ, board) {
     for (var i = cellI - 1; i <= cellI + 1; i++) {
         if (i < 0 || i >= board.length) continue;
@@ -185,3 +187,7 @@ function renderAllMines(board){
         }
     }
 }
+
+function getRandInc(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
