@@ -7,8 +7,8 @@ const FLAG = '🚩';
 var gId = 0;
 var gBoard;
 var gLevel = {
-    SIZE: 4,
-    MINES: 2
+    SIZE: 8,
+    MINES: 12
 }
 var gMine;
 var gGame = {
