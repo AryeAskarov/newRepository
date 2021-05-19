@@ -1,0 +1,47 @@
+
+/* body{
+    text-align: center;
+/* } */
+table {
+    text-align: center;
+    align-content: center;
+    border: 1px solid black;
+    left: 100px;
+}
+td{
+    border: 1px solid black; 
+}
+/* h2{
+    text-align: center;
+    align-content: center;
+    left: 100px;
+    margin-left:50px;
+}
+tbody{
+    text-align: center;
+    align-content: center;
+}
+tr{
+    text-align: center;
+    align-content: center;
+}
+th{
+    text-align: center;
+    align-content: center;
+}
+div{
+    text-align: center;
+    align-content: center; 
+} */
+.cell {
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    font-size: 1.5em;
+}
+.unVisible {
+    background-color: gray;
+}
+.onMine{
+    background-color: red;
+}
