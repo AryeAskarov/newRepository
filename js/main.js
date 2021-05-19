@@ -21,6 +21,7 @@ var gGame = {
 
 // This is called when page loads
 function initGame() {
+    gGame.shownCount = 0
     gGame.isOn = true;
     gBoard = buildBoard(gLevel.SIZE);
     setMinesNegsCount(gBoard);
@@ -141,13 +142,19 @@ function cellClicked(elCell){
         cell.isVisible = true;
         // console.log('cell:',cell);
         renderBoard(gBoard, '.game-board'); 
+        gGame.shownCount++
     }
     if (cell.isMine) {
         gMine = elCell;
-        console.log('game over');
+        console.log('Game over 😭');
         checkGameOver()
         // elCell.classList.add('onMine');
     }    
+    // console.log('gGame.shownCount',gGame.shownCount)
+    if (gGame.shownCount===((gLevel.SIZE**2)-gLevel.MINES)){
+        console.log('Victory 😃');
+        checkGameOver();
+    }
  }
 
 // Called on right click to mark a cell (suspected to be a mine) Search the web (and implement) how to hide the context menu on right click
@@ -157,6 +164,7 @@ function cellMarked(elCell) { }
 function checkGameOver() {
     gGame.isOn = false;
     renderAllMines(gBoard);
+    gGame.shownCount = 0;
 
     // renderBoard(gBoard, '.game-board')
 }
