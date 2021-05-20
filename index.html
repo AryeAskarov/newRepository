@@ -7,13 +7,30 @@
     <title>Document</title>
     <link rel="stylesheet" href="css/app.css">
 </head>
-<body onload="initGame()" onkeyup="moveKey(event)">
-    <div>
-        <h2>Mine Sweeper 2021</h2>
-        <div class="game-board"></div>
+<body onload="initGame()" onkeyup="moveKey(event)" oncontextmenu="return false">
+    <span class="main-title">Mine Sweeper 2021</span>
+    <div class="center">
+        <button onclick="getGameLevel('bt1')"><span id="bt1">Beginner</span></button>
+        <button onclick="getGameLevel('bt2')"><span id="bt2">Medium</span></button>
+        <button onclick="getGameLevel('bt3')"><span id="bt3">Expert</span></button>
     </div>
-    <!-- <script src="js/utils.js"></script> -->
+    <div class="center">
+        <span class ="main">Score:</span><span id="score" class ="main">0</span>
+        <span id="smiley-face" class ="main" onclick="starOver()">x</span>
+        <span class ="main">Time:</span><span id="timer" class ="main">0</span>
+    </div>
+    <div class="game-board"></div>
+    <!-- <button onclick="usePowerUps('bt4')"><span id="bt4">Power-ups</span></button> -->
+    <!-- <button onclick="usePowerUps('bt5')"><span id="bt5">3 Lives</span></button>
+    <button onclick="usePowerUps('bt6')"><span id="bt6">3 Hints</span></button>
+    <button onclick="usePowerUps('bt7')"><span id="bt7">3 Safe Click</span></button> -->
+    <div class="power-ups"></div>
+    <span class="power-ups-lifes"></span>
+    <span class="power-ups-hints" onclick="useHints()"></span>
+    <span class="power-ups-safeclick" onclick="useSafeClick()"></span>
+    <div class="score-board"></div>
     <script src="js/main.js"></script>
+    
     
 </body>
 </html>
