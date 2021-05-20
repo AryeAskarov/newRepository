@@ -78,6 +78,7 @@ function starOver() {
     gHints = 0;
     addLifes(gLife);
     clearSafeClick()
+    clearHint()
     clearLife()
     initGame()
 }
@@ -581,6 +582,10 @@ function clearSafeClick() {
 function clearLife() {
     var elPowerUps = document.querySelector('.power-ups-lifes');
     elPowerUps.innerText = '';
+}
+    function clearHint() {
+        var elPowerUps = document.querySelector('.power-ups-hints');
+        elPowerUps.innerText = '';
 }
 function useSafeClick() {
     // console.log('click');
