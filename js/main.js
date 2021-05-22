@@ -10,7 +10,8 @@ const SMILEY = '😀';
 const SMILEY_WIN = '🤴';
 const SMILEY_LOST = '😭';
 const SMILEY_POWER = '😎'
-const SMILE_BOOM = '😲';
+const SMILEY_BOOM = '😲';
+
 
 
 var gTimerInterval;
@@ -35,17 +36,19 @@ var gLife = 0;
 var gSafeClikes = 0;
 var gUsedSafeClickes = 0;
 var gHints = 0;
-var gUsedHints=0;
+var gUsedHints = 0;
 var gIsSafeBtnUsed = false;
 var gIsLifeBtnUsed = false;
 var gIsHintsBtnUsed = false;
 var isSafeClickOn = false;
 var isHintOn = false;
+var gIsFirtGreeting = true;
 
 
 
 // This is called when page loads
 function initGame() {
+    firstGreeting();
     renderPowerUps();
     renderSmiley(SMILEY)
     gGame.shownCount = 0;
@@ -55,13 +58,13 @@ function initGame() {
     setMines(gBoard);
     showNeighbours(gBoard);
     renderBoard(gBoard, '.game-board');
-
 }
 
 function starOver() {
     gScore = 0;
     gIsSafeBtnUsed = false;
     gIsLifeBtnUsed = false;
+    gIsHintsBtnUsed = false;
     isSafeClickOn = false;
     isHintOn = false;
     gGame.isOn = false;
@@ -77,10 +80,11 @@ function starOver() {
     gLife = 0;
     gHints = 0;
     addLifes(gLife);
-    clearSafeClick()
-    clearHint()
-    clearLife()
-    initGame()
+    clearSafeClick();
+    clearHint();
+    clearLife();
+    if (!gIsFirtGreeting) logSay('Let\'s start, Choose a game level');
+    initGame();
 }
 
 function getCell(i, j) {
@@ -92,7 +96,8 @@ function getCell(i, j) {
         isMine: false,
         isFlag: false,
         isVisible: false,
-        isBoom: false
+        isBoom: false,
+        isHintActive: false
     }
     // console.log('cell',cell);
     return cell;
@@ -102,7 +107,7 @@ function getCell(i, j) {
 function buildBoard(size = 4) {
     var board = [];
     for (var i = 0; i < size; i++) {
-        board.push([])
+        board.push([]);
         for (var j = 0; j < size; j++) {
             board[i][j] = getCell(i, j);
         }
@@ -170,6 +175,7 @@ function resetNeighbours(board) {
 
 // Render the board as a <table> to the page
 function renderBoard(board, selector) {
+    msgToThePlayerOnScore();
     var inputCell = '';
     var cellStyle = '';
     var strHTML = `<table><tbody>`;
@@ -242,26 +248,34 @@ function cellMarked(mouseEvent) {
 function cellClicked(elCell) {
     if (!gGame.isOn) return;
     if (isSafeClickOn) return;
+    if (!gTimerInterval) logSay('Here we go, good luck');
     renderSmiley(SMILEY);
     var cellPos = getCellPos(elCell.id);
     console.log('cellPos:', cellPos);
     var cell = gBoard[cellPos.i][cellPos.j];
     if (isHintOn) {
+        renderScore(10);
         openArea(cellPos.i, cellPos.j, gBoard);
         renderBoard(gBoard, '.game-board');
-        renderSmiley('🤓');
+        renderSmiley('😶');
+        logSay('-10 Points, You used a hint');
         setTimeout(function () {
             renderBoard(gBoard, '.game-board');
             renderSmiley(SMILEY);
             closeArea(cellPos.i, cellPos.j, gBoard)
             isHintOn = false;
             renderBoard(gBoard, '.game-board');
-        }, 2000);      
+        }, 2000);
+        return;
     }
     if (!cell.isVisible && !cell.isFlag) {
-        if (!cell.neighbours) expandShown(gBoard, cellPos.i, cellPos.j);
+        if (!cell.neighbours && !cell.isMine) {
+            expandShown(gBoard, cellPos.i, cellPos.j);
+            expandShownEdges(gBoard, cellPos.i, cellPos.j);
+            return;
+        }
         cell.isVisible = true;
-        if(!cell.isMine) gGame.shownCount++;
+        if (!cell.isMine) gGame.shownCount++;
         console.log('gGame.shownCount', gGame.shownCount);
         renderScore(0);
         if (gGame.shownCount > 0 && !gGame.isTimeOn) {
@@ -273,7 +287,13 @@ function cellClicked(elCell) {
         // console.log('gGame.shownCount:', gGame.shownCount)
     }
     if (cell.isMine && !cell.isFlag && !cell.isBoom) {
-        if (!gGame.isFirsMine && gGame.shownCount <= 1) {
+        if (!gGame.isFirsMine && gGame.shownCount <= 1 && !gGame.secsPassed) {
+            gGame.shownCount++;
+            renderScore(0);
+            if (gGame.shownCount > 0 && !gGame.isTimeOn) {
+                gGame.isTimeOn = true;
+                gTimerInterval = setInterval(renderTime, 1000);
+            }
             renderScore(0);
             cell.isMine = false;
             console.log('START ON MINE');
@@ -290,11 +310,14 @@ function cellClicked(elCell) {
             cell.isBoom = true;
             renderSmiley(SMILEY_LOST);
             console.log('Game over 😭');
+            lagSayConst('GAME OVER!');
             checkGameOver();
             return;
         }
         gLife--;
-        renderSmiley(SMILE_BOOM);
+        renderScore(10);
+        renderSmiley(SMILEY_BOOM);
+        logSay('-10 Points, You stepped on a mine');
         addLifes(gLife);
         return;
         // elCell.classList.add('onMine');
@@ -309,10 +332,12 @@ function cellClicked(elCell) {
         // }
         console.log('Victory 😃');
         gGame.shownCount += 20;
+        lagSayConst('VICTORY ! \n\n Get 100 bonus points on a win');
         checkGameOver();
         return;
     }
 }
+
 
 
 // Game ends when all mines are marked, and all the other cells are shown
@@ -339,14 +364,37 @@ function expandShown(board, cellI, cellJ) {
             if (j < 0 || j >= board[i].length) continue;
             var cell = board[i][j];
             if (cell.neighbours === 0 && !cell.isVisible && !cell.isFlag) {
-                cell.isVisible = true;
-                gGame.shownCount++
-                renderScore(0);
+                if (!cell.isVisible) {
+                    gGame.shownCount++
+                    renderScore(0);
+                    cell.isVisible = true;
+                    console.log(' gGame.shownCount', gGame.shownCount);
+                    expandShown(board, i, j);
+                    expandShownEdges(board, i, j);
+                }
                 // console.log('gGame.shownCountEX:', gGame.shownCount)
             }
         }
     }
     renderBoard(gBoard, '.game-board');
+}
+
+function expandShownEdges(board, cellI, cellJ) {
+    for (var i = cellI - 1; i <= cellI + 1; i++) {
+        if (i < 0 || i >= board.length) continue;
+        for (var j = cellJ - 1; j <= cellJ + 1; j++) {
+            if (i === cellI && j === cellJ) continue;
+            if (j < 0 || j >= board[i].length) continue;
+            var cell = board[i][j];
+            // cell.isVisible = true;
+            if (!cell.isVisible && !cell.isMine) {
+                gGame.shownCount++
+                console.log(' gGame.shownCount', gGame.shownCount);
+                renderScore(0);
+                cell.isVisible = true;
+            }
+        }
+    }
 }
 
 
@@ -384,23 +432,37 @@ function expandShown(board, cellI, cellJ) {
 // }
 
 function getGameLevel(elId) {
-    if (gGame.secsPassed) return;
+    if (gGame.secsPassed) {
+        logSay('Level cannot be changed in the middle of the game');
+        renderSmiley('😑');
+        setTimeout(function () { renderSmiley(SMILEY) }, 1500);
+        return;
+    }
     var elGetLevel = document.getElementById(elId);
     switch (elGetLevel.innerText) {
         case 'Beginner':
             gLevel.SIZE = 4;
             gLevel.MINES = 3;
             console.log('Level: Beginner ,SIZE', gLevel.SIZE, '*', gLevel.SIZE, ',MINES', gLevel.MINES);
+            logSay('Beginner, an easy 4-on-4 slot game with 3 mines', 'green');
+            renderSmiley('🥱');
+            setTimeout(function () { renderSmiley(SMILEY); }, 2000);
             break;
         case 'Medium':
             gLevel.SIZE = 8;
             gLevel.MINES = 12;
             console.log('Level: Medium ,SIZE', gLevel.SIZE, '*', gLevel.SIZE, ',MINES', gLevel.MINES);
+            logSay('Medium, a standard 8-by-8 slot game with 12 mines', 'blue');
+            renderSmiley('🙂');
+            setTimeout(function () { renderSmiley(SMILEY); }, 2000);
             break;
         case 'Expert':
             gLevel.SIZE = 12;
             gLevel.MINES = 30;
             console.log('Level: Expert ,SIZE', gLevel.SIZE, '*', gLevel.SIZE, ',MINES', gLevel.MINES);
+            logSay('Expert, 12-on-12 hard-hitting game with 30 mines \n (you may need powerUps)', 'red');
+            renderSmiley('😣');
+            setTimeout(function () { renderSmiley(SMILEY); }, 2000);
             break;
         default:
             break;
@@ -437,6 +499,7 @@ function getRandInc(min, max) {
 }
 function renderTime() {
     gGame.secsPassed++;
+    msgToThePlayerOnTime();
     if (!gGame.isTimeOn) gGame.secsPassed = 0;
     var elTime = document.querySelector('#timer');
     // console.log('elTime:',elTime);  
@@ -445,6 +508,7 @@ function renderTime() {
 
 function renderScore(value) {
     gScore = (gGame.shownCount * 5) - value;
+    msgToThePlayerOnScore();
     var elScore = document.querySelector('#score');
     if (gScore < 0) gScore = 0;
     // console.log('gScore:',gScore);
@@ -456,32 +520,41 @@ function renderSmiley(value) {
     // console.log('elSmiley:',elSmiley);
     elSmiley.innerText = value;
 }
-
+function firstGreeting() {
+    if (!gIsFirtGreeting) return;
+    lagSayConst('Greetings, this is a new custom version of the Minesweeper, please select a level and start playing');
+    gIsFirtGreeting = false;
+}
 ////////////////////////////POWER UPS/////////////////////////////////
 
 function renderPowerUps() {
     var elPowerUps = document.querySelector('.power-ups');
     elPowerUps.innerHTML = `<button onclick="usePowerUps('bt4')"><span id="bt4">Power-ups</span></button>`;
 }
-function usePowerUps(btn) {
+function usePowerUps() {
     if (gGame.shownCount) {
         document.getElementById("bt4").style.color = "red";
+        logSay('PowerUps cannot be turned on after the game starts');
+        renderSmiley('😑');
+        setTimeout(function () { renderSmiley(SMILEY) }, 1500);
         return;
     }
+    logSay('PowerUps, Is cool but the use lowers points, Use wisely');
     renderSmiley(SMILEY_POWER);
+    logSay('Activate Power Ups mode that will help you in the game, \n (remember that each use drops points)');
     var elPowerUps = document.querySelector('.power-ups');
     elPowerUps.innerHTML = `<button onclick="openLife('2')"><span id="bt5">3 Lives</span></button>
     <button onclick="openHints('3')"><span id="bt6">3 Hints</span></button>
     <button onclick="openSefeClick('3')"><span id="bt7">3 Safe Click</span></button>`;
 }
 
-function openHints(value){
-    if(gIsHintsBtnUsed) return;
+function openHints(value) {
+    if (gIsHintsBtnUsed) return;
     addHints(value);
     gIsHintsBtnUsed = true;
 }
 
-function addHints(value){
+function addHints(value) {
     gHints = value;
     var elPowerUps = document.querySelector('.power-ups-hints');
     elPowerUps.innerText = '';
@@ -490,6 +563,7 @@ function addHints(value){
     }
     for (var i = 1; i <= gUsedHints; i++) {
         elPowerUps.innerText += '📍';
+        logSay('You have 5 seconds to use the hint \n (click on the board)')
     }
 }
 
@@ -497,9 +571,10 @@ function openArea(cellI, cellJ, board) {
     for (var i = cellI - 1; i <= cellI + 1; i++) {
         if (i < 0 || i >= board.length) continue;
         for (var j = cellJ - 1; j <= cellJ + 1; j++) {
-            if (i === cellI && j === cellJ) continue;
+            // if (i === cellI && j === cellJ) continue;
             if (j < 0 || j >= board[i].length) continue;
             var cell = board[i][j];
+            if (cell.isVisible) cell.isHintActive = true;
             cell.isVisible = true;
         }
     }
@@ -508,10 +583,11 @@ function closeArea(cellI, cellJ, board) {
     for (var i = cellI - 1; i <= cellI + 1; i++) {
         if (i < 0 || i >= board.length) continue;
         for (var j = cellJ - 1; j <= cellJ + 1; j++) {
-            if (i === cellI && j === cellJ) continue;
+            // if (i === cellI && j === cellJ) continue;
             if (j < 0 || j >= board[i].length) continue;
             var cell = board[i][j];
-            cell.isVisible = false;
+            if (!cell.isHintActive) cell.isVisible = false;
+            cell.isHintActive = false;   
         }
     }
 }
@@ -526,7 +602,7 @@ function useHints() {
         gHints--;
         addHints(gHints);
         isHintOn = true;
-        renderSmiley('🤓');
+        renderSmiley('😶');
     }
 }
 
@@ -540,7 +616,7 @@ function useHints() {
 // }
 
 
-function openLife(value){
+function openLife(value) {
     // if (gGame.shownCount) return;
     if (gIsLifeBtnUsed) return;
     addLifes(value);
@@ -583,9 +659,9 @@ function clearLife() {
     var elPowerUps = document.querySelector('.power-ups-lifes');
     elPowerUps.innerText = '';
 }
-    function clearHint() {
-        var elPowerUps = document.querySelector('.power-ups-hints');
-        elPowerUps.innerText = '';
+function clearHint() {
+    var elPowerUps = document.querySelector('.power-ups-hints');
+    elPowerUps.innerText = '';
 }
 function useSafeClick() {
     // console.log('click');
@@ -610,6 +686,8 @@ function setSafeClick(board) {
         if (cell.isVisible) continue;
         cell.isVisible = true;
         renderSmiley('🧐');
+        renderScore(10);
+        logSay('-10 Points, Safe click used');
         setTimeout(function () {
             cell.isVisible = false;
             renderBoard(gBoard, '.game-board');
@@ -622,7 +700,32 @@ function setSafeClick(board) {
         isSet = true;
     }
 }
-
+function logSay(str, color = 'black') {
+    str += '.';
+    var elLogSay = document.getElementById('log01');
+    elLogSay.innerText = str;
+    document.getElementById('log01').style.color = color;
+    setTimeout(function () { elLogSay.innerText = ''; }, 3000);
+}
+function lagSayConst(str, color = 'black') {
+    str += '.';
+    var elLogSay = document.getElementById('log01');
+    elLogSay.innerText = str;
+    document.getElementById('log01').style.color = color;
+}
+function msgToThePlayerOnScore() {
+    if (gGame.shownCount > 80 && 82 > gGame.shownCount) logSay('Wow, great progress, you can not be stopped');
+    else if (gGame.shownCount > 45 && 47 > gGame.shownCount) logSay('Great, keep it up, you\'re really good');
+    else if (gGame.shownCount > 24 && 26 > gGame.shownCount) logSay('Go on, you\'re doing well');
+    else if (gGame.shownCount > 10 && 12 > gGame.shownCount) logSay('So far, so good');   
+}
+function msgToThePlayerOnTime(){
+    if (gGame.secsPassed > 450 && 460 > gGame.secsPassed) renderSmiley('😴');
+    else if (gGame.secsPassed > 400 && 402 > gGame.secsPassed) logSay('Too long, I think in the end you will be left without points');
+    else if (gGame.secsPassed > 300 && 302 > gGame.secsPassed) logSay('Remember that the result combined of scoring less time');
+    else if (gGame.secsPassed > 200 && 202 > gGame.secsPassed) logSay('Takes you too long, hurry up');
+    else if (gGame.secsPassed > 100 && 102 > gGame.secsPassed) logSay('Pay attention to time');
+}
 
 
 

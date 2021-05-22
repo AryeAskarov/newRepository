@@ -12,6 +12,12 @@ table {
 td{
     border: 0px solid black; 
 }
+/* .smiley:hover{
+    transition: 1s; 
+    cursor:pointer;
+    transform: scale(2,2);
+} */
+
 button{
     background-color: rgb(243, 221, 18);
     transition: 1s;
@@ -21,7 +27,13 @@ button{
     font-size:1em;
     width: 120px;
     height: 40px;
+    cursor:pointer;
 
+}
+button:hover{
+    background-color: rgb(207, 189, 21);
+    transition: 2s;
+    cursor:pointer; 
 }
 
 .main {
@@ -45,7 +57,14 @@ button{
     background-color: rgb(243, 221, 18);
     transition: 1s;
     border-radius: 10px;
+    cursor:pointer; 
 }
+.unVisible:hover{
+    background-color: rgb(207, 189, 21);
+    transition: 2s;
+    cursor:pointer; 
+}
+
 .onMine{
     background-color: red;
     border-radius: 10px;
@@ -73,10 +92,13 @@ button{
     font-style: oblique;
     font-family: serif;
 }
+.power-ups{
+    margin-top: 30px;
+}
 .power-ups-lifes{
     transition: 1s;
     border-radius: 10px;
-    margin: 15px;
+    margin: 5px;
     margin-bottom: 30px;
     font-size:1em;
     width: 120px;
@@ -86,7 +108,7 @@ button{
 .power-ups-hints{
     transition: 1s;
     border-radius: 10px;
-    margin: 15px;
+    margin: 5px;
     margin-bottom: 30px;
     font-size:1em;
     width: 120px;
@@ -96,10 +118,22 @@ button{
 .power-ups-safeclick{
     transition: 1s;
     border-radius: 10px;
-    margin: 15px;
+    margin: 5px;
     margin-bottom: 30px;
     font-size:1em;
     width: 120px;
     height: 40px;
     font-size: 2em; 
+}
+.log-say{
+    margin: auto;
+    text-align: center;
+    transition: 1s;
+    text-overflow: clip;
+    margin-top: 5px;
+    margin-bottom: 2px;
+    width: 500px;
+    height: 20px;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;  
+    font-size: 1.2em;
 }
