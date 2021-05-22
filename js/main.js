@@ -210,6 +210,10 @@ function renderBoard(board, selector) {
                     cellStyle = 'visible';
                 }
             }
+            if (cell.isMine && cell.isHintActive && cell.isVisible) {
+                inputCell = MINE;
+                cellStyle = 'visible';
+            }
             var className = `cell-${i}-${j}`;
             strHTML += `<td id="${className}" class="cell ${cellStyle}" 
             onclick="cellClicked(this)" oncontextmenu="cellMarked(this)">${inputCell}</td>`;
@@ -272,6 +276,10 @@ function cellClicked(elCell) {
         if (!cell.neighbours && !cell.isMine) {
             expandShown(gBoard, cellPos.i, cellPos.j);
             expandShownEdges(gBoard, cellPos.i, cellPos.j);
+            if (gGame.shownCount > 0 && !gGame.isTimeOn) {
+                gGame.isTimeOn = true;
+                gTimerInterval = setInterval(renderTime, 1000);
+            }
             return;
         }
         cell.isVisible = true;
@@ -502,8 +510,18 @@ function renderTime() {
     msgToThePlayerOnTime();
     if (!gGame.isTimeOn) gGame.secsPassed = 0;
     var elTime = document.querySelector('#timer');
-    // console.log('elTime:',elTime);  
+    // // console.log('elTime:',elTime); 
+    // // str = '';
+    // var countMin=0;
+    // var min = 0;
+    // var sec = gGame.secsPassed % 60 
+    // var countMin = gGame.secsPassed
+    // while ((countMin/60) >= 1){
+    //     countMin = countMin / 60 ;
+    //     min ++
+    // }
     elTime.innerText = gGame.secsPassed;
+
 }
 
 function renderScore(value) {
@@ -574,7 +592,7 @@ function openArea(cellI, cellJ, board) {
             // if (i === cellI && j === cellJ) continue;
             if (j < 0 || j >= board[i].length) continue;
             var cell = board[i][j];
-            if (cell.isVisible) cell.isHintActive = true;
+            if (!cell.isVisible) cell.isHintActive = true;
             cell.isVisible = true;
         }
     }
@@ -586,7 +604,7 @@ function closeArea(cellI, cellJ, board) {
             // if (i === cellI && j === cellJ) continue;
             if (j < 0 || j >= board[i].length) continue;
             var cell = board[i][j];
-            if (!cell.isHintActive) cell.isVisible = false;
+            if (cell.isHintActive) cell.isVisible = false;
             cell.isHintActive = false;   
         }
     }
